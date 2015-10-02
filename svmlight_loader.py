@@ -12,6 +12,7 @@ import scipy.sparse as sp
 
 from _svmlight_loader import _load_svmlight_file
 from _svmlight_loader import _dump_svmlight_file
+from _svmlight_loader import _dump_rgf_file
 
 
 def load_svmlight_file(file_path, n_features=None, dtype=None,
@@ -154,3 +155,34 @@ def dump_svmlight_file(X, y, f, zero_based=True):
     y = np.array(y, dtype=np.float64)
 
     _dump_svmlight_file(f, X.data, X.indices, X.indptr, y, int(zero_based))
+    
+def dump_rgf_file(X, y, f, zero_based=True):
+    """Dump the dataset in svmlight / libsvm file format.
+    This format is a text-based format, with one sample per line. It does
+    not store zero valued features hence is suitable for sparse dataset.
+    The first element of each line can be used to store a target variable
+    to predict.
+    Parameters
+    ----------
+    X : CSR sparse matrix, shape = [n_samples, n_features]
+        Training vectors, where n_samples is the number of samples and
+        n_features is the number of features.
+    y : array-like, shape = [n_samples]
+        Target values.
+    f : str
+        Specifies the path that will contain the data.
+    zero_based : boolean, optional
+        Whether column indices should be written zero-based (True) or one-based
+        (False).
+    """
+    if hasattr(f, "write"):
+        raise ValueError("File handler not supported. Use a file path.")
+
+    if X.shape[0] != y.shape[0]:
+        raise ValueError("X.shape[0] and y.shape[0] should be the same, "
+                         "got: %r and %r instead." % (X.shape[0], y.shape[0]))
+
+    X = sp.csr_matrix(X, dtype=np.float64)
+    y = np.array(y, dtype=np.float64)
+
+    _dump_rgf_file(f, X.data, X.indices, X.indptr, y, int(zero_based))    
