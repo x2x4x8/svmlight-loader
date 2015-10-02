@@ -366,6 +366,63 @@ static PyObject *dump_svmlight_file(PyObject *self, PyObject *args)
 }
 
 
+static const char dump_rgf_file_doc[] =
+  "Dump CSR matrix to a file in rgf format.";
+
+extern "C" {
+static PyObject *dump_rgf_file(PyObject *self, PyObject *args)
+{
+  try {
+    // Read function arguments.
+    char const *file_path;
+    PyArrayObject *indices_array, *indptr_array, *data_array, *label_array;
+    int zero_based;
+
+    if (!PyArg_ParseTuple(args,
+                          "sO!O!O!O!i",
+                          &file_path,
+                          &PyArray_Type, &data_array,
+                          &PyArray_Type, &indices_array,
+                          &PyArray_Type, &indptr_array,
+                          &PyArray_Type, &label_array,
+                          &zero_based))
+      return 0;
+
+    int n_samples = indptr_array->dimensions[0] - 1;
+    double *data = (double*) data_array->data;
+    int *indices = (int*) indices_array->data;
+    int *indptr = (int*) indptr_array->data;
+    double *y = (double*) label_array->data;
+
+    std::ofstream fout;
+    fout.open(file_path, std::ofstream::out);
+
+    int idx;
+    for (int i=0; i < n_samples; i++) {
+      //fout << y[i] << " ";
+      for (int jj=indptr[i]; jj < indptr[i+1]; jj++) {
+        idx = indices[jj];
+        if (!zero_based)
+          idx++;
+        fout << idx << ":" << data[jj] << " ";
+      }
+      fout << std::endl;
+    }
+
+    fout.close();
+
+    Py_INCREF(Py_None);
+    return Py_None;
+
+  } catch (std::exception const &e) {
+    std::string msg("error in SVMlight/libSVM writer: ");
+    msg += e.what();
+    PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+    return 0;
+  }
+}
+}
+
 /*
  * Python module setup.
  */
@@ -376,6 +433,9 @@ static PyMethodDef svmlight_format_methods[] = {
 
   {"_dump_svmlight_file", dump_svmlight_file,
     METH_VARARGS, dump_svmlight_file_doc},
+    
+  {"_dump_rgf_file", dump_rgf_file,
+    METH_VARARGS, dump_rgf_file_doc},
 
   {NULL, NULL, 0, NULL}
 };
