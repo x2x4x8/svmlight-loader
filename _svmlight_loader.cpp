@@ -397,7 +397,9 @@ static PyObject *dump_rgf_file(PyObject *self, PyObject *args)
     double *y = (double*) label_array->data;
 
     std::ofstream fout;
-    fout.open(strcat(file_path,file_path_suffix_x), std::ofstream::out);
+    std::string fname(file_path);
+    fname.append('_x');
+    fout.open(fname, std::ofstream::out);
 
     int idx;
     for (int i=0; i < n_samples; i++) {
@@ -413,7 +415,7 @@ static PyObject *dump_rgf_file(PyObject *self, PyObject *args)
 
     fout.close();
     
-    fout.open(strcat(file_path,file_path_suffix_y), std::ofstream::out);
+    fout.open(file_path, std::ofstream::out);
 
     //`int idx;
     for (int i=0; i < n_samples; i++) {
