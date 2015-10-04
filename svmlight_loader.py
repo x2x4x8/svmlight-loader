@@ -156,7 +156,7 @@ def dump_svmlight_file(X, y, f, zero_based=True):
 
     _dump_svmlight_file(f, X.data, X.indices, X.indptr, y, int(zero_based))
     
-def dump_rgf_file(X, y, f, zero_based=True):
+def dump_rgf_file(X, y, f1, f2, zero_based=True):
     """Dump the dataset in svmlight / libsvm file format.
     This format is a text-based format, with one sample per line. It does
     not store zero valued features hence is suitable for sparse dataset.
@@ -175,8 +175,10 @@ def dump_rgf_file(X, y, f, zero_based=True):
         Whether column indices should be written zero-based (True) or one-based
         (False).
     """
-    if hasattr(f, "write"):
+    if hasattr(f1, "write"):
         raise ValueError("File handler not supported. Use a file path.")
+    if hasattr(f2, "write"):
+        raise ValueError("File handler not supported. Use a file path.")        
 
     if X.shape[0] != y.shape[0]:
         raise ValueError("X.shape[0] and y.shape[0] should be the same, "
@@ -185,4 +187,4 @@ def dump_rgf_file(X, y, f, zero_based=True):
     X = sp.csr_matrix(X, dtype=np.float64)
     y = np.array(y, dtype=np.float64)
 
-    _dump_rgf_file(f, X.data, X.indices, X.indptr, y, int(zero_based))    
+    _dump_rgf_file(f1, f2, X.data, X.indices, X.indptr, y, int(zero_based))    
