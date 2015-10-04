@@ -374,15 +374,15 @@ static PyObject *dump_rgf_file(PyObject *self, PyObject *args)
 {
   try {
     // Read function arguments.
-    char const *file_path;
-    char const *file_path_suffix_x='_x';
-    char const *file_path_suffix_y='_y';
+    char const *file_path1;
+    char const *file_path2;
     PyArrayObject *indices_array, *indptr_array, *data_array, *label_array;
     int zero_based;
 
     if (!PyArg_ParseTuple(args,
-                          "sO!O!O!O!i",
-                          &file_path,
+                          "ssO!O!O!O!i",
+                          &file_path1,
+                          &file_path2,
                           &PyArray_Type, &data_array,
                           &PyArray_Type, &indices_array,
                           &PyArray_Type, &indptr_array,
@@ -396,34 +396,28 @@ static PyObject *dump_rgf_file(PyObject *self, PyObject *args)
     int *indptr = (int*) indptr_array->data;
     double *y = (double*) label_array->data;
 
-    std::ofstream fout;
-    std::string fname(file_path);
-    fname.append('_x');
-    fout.open(fname, std::ofstream::out);
+    std::ofstream fout1;
+    std::ofstream fout2;
+    
+    fout1.open(file_path1, std::ofstream::out);
+    fout2.open(file_path2, std::ofstream::out);
 
     int idx;
     for (int i=0; i < n_samples; i++) {
-      //fout << y[i] << " ";
+      fout2 << y[i] << " ";
       for (int jj=indptr[i]; jj < indptr[i+1]; jj++) {
         idx = indices[jj];
         if (!zero_based)
           idx++;
-        fout << idx << ":" << data[jj] << " ";
+        fout1 << idx << ":" << data[jj] << " ";
       }
-      fout << std::endl;
+      fout1 << std::endl;
+      fout2 << std::endl;
     }
 
-    fout.close();
-    
-    fout.open(file_path, std::ofstream::out);
-
-    //`int idx;
-    for (int i=0; i < n_samples; i++) {
-      fout << y[i] << " ";
-      fout << std::endl;
-    }
-
-    fout.close();
+    fout1.close();
+    fout2.close();
+  
 
     Py_INCREF(Py_None);
     return Py_None;
